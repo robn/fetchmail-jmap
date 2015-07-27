@@ -356,6 +356,8 @@ int parsecmdline (int argc /** argument count */,
 	    }
 	    else if (strcasecmp(optarg,"imap") == 0)
 		ctl->server.protocol = P_IMAP;
+	    else if (strcasecmp(optarg,"jmap") == 0)
+		ctl->server.protocol = P_JMAP;
 	    else if (strcasecmp(optarg,"etrn") == 0)
 		ctl->server.protocol = P_ETRN;
 	    else if (strcasecmp(optarg,"odmr") == 0)

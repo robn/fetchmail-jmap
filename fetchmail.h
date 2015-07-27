@@ -53,8 +53,9 @@ char *strstr(const char *, const char *);
 #define		P_APOP		4
 #define		P_RPOP		5
 #define		P_IMAP		6
-#define		P_ETRN		7
-#define		P_ODMR		8
+#define		P_JMAP		7
+#define		P_ETRN		8
+#define		P_ODMR		9
 
 #define		SMTP_PORT	"smtp"
 #define		SMTP_PORT_NUM	25
@@ -659,6 +660,7 @@ int interface_approve(struct hostdata *, flag domonitor);
 /* protocol driver and methods */
 int doPOP2 (struct query *); 
 int doPOP3 (struct query *);
+int doJMAP (struct query *);
 int doIMAP (struct query *);
 int doETRN (struct query *);
 int doODMR (struct query *);

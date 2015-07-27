@@ -404,6 +404,20 @@ AC_ARG_ENABLE(IMAP,
 test "$with_IMAP" = "yes" && AC_DEFINE(IMAP_ENABLE,1,Define if you want IMAP support compiled in)
 AM_CONDITIONAL(IMAP_ENABLE, test "$with_IMAP" = yes)
 
+###	use option --disable-JMAP to omit the JMAP support
+AC_ARG_ENABLE(JMAP,
+	[  --disable-JMAP          don't compile in JMAP protocol support],
+	[with_JMAP=$enableval],
+	[with_JMAP=yes])
+test "$with_JMAP" = "yes" && AC_DEFINE(JMAP_ENABLE,1,Define if you want JMAP support compiled in)
+AM_CONDITIONAL(JMAP_ENABLE, test "$with_JMAP" = yes)
+if test "$with_JMAP" ; then
+    AC_CHECK_LIB(curl, curl_global_init,, [AC_MSG_ERROR([cannot find libcurl, which is required for JMAP support])])
+    AC_CHECK_LIB(wjelement, WJEHash,, [AC_MSG_ERROR([cannot find libwjelement, which is required for JMAP support])])
+    AC_CHECK_LIB(wjreader , WJRCloseDocument,, [AC_MSG_ERROR([cannot find libwjreader, which is required for JMAP support])])
+    AC_CHECK_LIB(wjwriter , WJWCloseDocument,, [AC_MSG_ERROR([cannot find libwjwriter, which is required for JMAP support])])
+fi
+
 ###	use option --disable-ETRN to omit the ETRN support
 AC_ARG_ENABLE(ETRN,
 	[  --disable-ETRN          don't compile in ETRN protocol support],
@@ -450,8 +464,8 @@ if test "$with_SDPS" = yes ; then
    fi
 fi
 if test "$with_POP3" != yes && test "$with_POP2" != yes \
-    && test "$with_IMAP"  != yes ; then
-    AC_MSG_ERROR([You must enable at least one of POP2, POP3 and IMAP.])
+    && test "$with_IMAP"  != yes && test "$with_JMAP" != yes ; then
+    AC_MSG_ERROR([You must enable at least one of POP2, POP3, IMAP and JMAP.])
 fi
 
 AC_CACHE_SAVE

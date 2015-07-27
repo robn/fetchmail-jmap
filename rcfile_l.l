@@ -192,6 +192,7 @@ options		{/* EMPTY */}
 (sdps)|(SDPS)   { return SDPS; }
 (pop3)|(POP3)	{ yylval.proto = P_POP3;  return PROTO; }
 (imap)|(IMAP)	{ yylval.proto = P_IMAP;  return PROTO; }
+(jmap)|(JMAP)	{ yylval.proto = P_JMAP;  return PROTO; }
 (apop)|(APOP)   { yylval.proto = P_APOP;  return PROTO; }
 (rpop)|(RPOP)   { yylval.proto = P_RPOP;  return PROTO; }
 (etrn)|(ETRN)   { yylval.proto = P_ETRN;  return PROTO; }

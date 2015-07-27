@@ -79,6 +79,9 @@ endif
 if IMAP_ENABLE
 fetchmail_SOURCES += imap.c
 endif
+if JMAP_ENABLE
+fetchmail_SOURCES += jmap.c
+endif
 if ETRN_ENABLE
 fetchmail_SOURCES += etrn.c
 endif

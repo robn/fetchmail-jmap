@@ -160,6 +160,9 @@ void dump_config(struct runctl *runp, struct query *querylist)
 #ifdef IMAP_ENABLE
     "'imap',"
 #endif /* IMAP_ENABLE */
+#ifdef JMAP_ENABLE
+    "'jmap',"
+#endif /* JMAP_ENABLE */
 #ifdef GSSAPI
     "'gssapi',"
 #endif /* GSSAPI */

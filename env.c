@@ -274,6 +274,9 @@ const char *showproto(int proto)
 #ifdef IMAP_ENABLE
     case P_IMAP: return("IMAP");
 #endif /* IMAP_ENABLE */
+#ifdef JMAP_ENABLE
+    case P_JMAP: return("JMAP");
+#endif /* JMAP_ENABLE */
 #ifdef ETRN_ENABLE
     case P_ETRN: return("ETRN");
 #endif /* ETRN_ENABLE */

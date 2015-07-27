@@ -242,6 +242,9 @@ int main(int argc, char **argv)
 #ifndef IMAP_ENABLE
 	"-IMAP"
 #endif /* IMAP_ENABLE */
+#ifndef JMAP_ENABLE
+	"-JMAP"
+#endif
 #ifdef GSSAPI
 	"+GSS"
 #endif /* GSSAPI */
@@ -1459,6 +1462,9 @@ static RETSIGTYPE terminate_run(int sig)
  */
 static const int autoprobe[] = 
 {
+#ifdef JMAP_ENABLE
+    P_JMAP,
+#endif /* JMAP_ENABLE */
 #ifdef IMAP_ENABLE
     P_IMAP,
 #endif /* IMAP_ENABLE */
@@ -1522,6 +1528,16 @@ static int query_host(struct query *ctl)
 	report(stderr, GT_("POP3 support is not configured.\n"));
 	st = PS_PROTOCOL;
 #endif /* POP3_ENABLE */
+	break;
+    case P_JMAP:
+#ifdef JMAP_ENABLE
+	do {
+	    st = doJMAP(ctl);
+	} while (st == PS_REPOLL);
+#else
+	report(stderr, GT_("JMAP support is not configured.\n"));
+	st = PS_PROTOCOL;
+#endif /* JMAP_ENABLE */
 	break;
     case P_IMAP:
 #ifdef IMAP_ENABLE
