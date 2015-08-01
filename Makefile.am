@@ -58,7 +58,7 @@ LDADD+=			libtrio.a -lm
 TESTS+=			t.regression
 endif
 
-fetchmail_SOURCES=	fetchmail.h getopt.h \
+fetchmail_SOURCES=	fetchmail.h getopt.h buf.h buf.c \
 		i18n.h kerberos.h fm_md5.h mx.h netrc.h smtp.h \
 		socket.h tunable.h \
 		socket.c getpass.c \

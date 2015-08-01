@@ -15,107 +15,10 @@
 #include  "fetchmail.h"
 #include  "socket.h"
 #include  "i18n.h"
+#include  "buf.h"
 
 #include <curl/curl.h>
 #include <wjelement.h>
-
-struct buf {
-    char *s;
-    size_t len;
-    size_t alloc;
-};
-
-#define BUF_INITIALIZER { NULL, 0, 0 }
-
-static size_t _roundup(size_t size)
-{
-    if (size < 32)
-        return 32;
-    if (size < 64)
-        return 64;
-    if (size < 128)
-        return 128;
-    if (size < 256)
-        return 256;
-    if (size < 512)
-        return 512;
-    return ((size + 1024) & ~1023);
-}
-
-#define buf_ensure(b, n) do { if ((b)->alloc < (b)->len + (n)) _buf_ensure((b), (n)); } while (0)
-#define buf_putc(b, c) do { buf_ensure((b), 1); (b)->s[(b)->len++] = (c); } while (0)
-
-static void _buf_ensure(struct buf *buf, size_t n)
-{
-    size_t newalloc = _roundup(buf->len + n);
-
-    if (newalloc <= buf->alloc)
-        return;
-
-    buf->s = realloc(buf->s, newalloc);
-    buf->alloc = newalloc;
-}
-
-static const char *buf_cstring(struct buf *buf)
-{
-    buf_ensure(buf, 1);
-    buf->s[buf->len] = '\0';
-    return buf->s;
-}
-
-static void buf_append(struct buf *buf, const char *base, size_t len)
-{
-    if (len) {
-        buf_ensure(buf, len);
-        memcpy(buf->s + buf->len, base, len);
-        buf->len += len;
-    }
-}
-
-static void buf_replace_buf(struct buf *buf,
-                            size_t offset,
-                            size_t length,
-                            const struct buf *replace)
-{
-    if (offset > buf->len) return;
-    if (offset + length > buf->len)
-        length = buf->len - offset;
-
-    /* we need buf to be a writable C string now please */
-    buf_cstring(buf);
-
-    if (replace->len > length) {
-        /* string will need to expand */
-        buf_ensure(buf, replace->len - length + 1);
-    }
-    if (length != replace->len) {
-        /* +1 to copy the NULL to keep cstring semantics */
-        memmove(buf->s + offset + replace->len,
-                buf->s + offset + length,
-                buf->len - offset - length + 1);
-        buf->len += (replace->len - length);
-    }
-    if (replace->len)
-        memcpy(buf->s + offset, replace->s, replace->len);
-}
-
-static void buf_remove(struct buf *dst, unsigned int off, unsigned int len)
-{
-    struct buf empty_buf = BUF_INITIALIZER;
-    buf_replace_buf(dst, off, len, &empty_buf);
-}
-
-void buf_reset(struct buf *buf)
-{
-    buf->len = 0;
-}
-
-static void buf_free(struct buf *buf)
-{
-    free(buf->s);
-    buf->s = NULL;
-    buf->len = buf->alloc = 0;
-}
 
 static struct buf body_out = BUF_INITIALIZER;
 static struct buf body_in = BUF_INITIALIZER;
@@ -138,7 +41,7 @@ static size_t _jmap_curl_read(char *buf, size_t size, size_t nmemb, void *data)
 static size_t _jmap_curl_write(char *buf, size_t size, size_t nmemb, void *data)
 {
     size_t amount = size*nmemb;
-    buf_append(&body_in, buf, size*nmemb);
+    buf_appendmap(&body_in, buf, size*nmemb);
     return amount;
 }
 
@@ -149,7 +52,7 @@ static int jmap_ok (int sock, char *argbuf) {
 
 static size_t _jmap_wjw_callback(char *buf, size_t len, void *data)
 {
-    buf_append(&body_out, buf, len);
+    buf_appendmap(&body_out, buf, len);
     return len;
 }
 
