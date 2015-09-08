@@ -53,6 +53,7 @@
 #include "getaddrinfo.h"
 #include "i18n.h"
 #include "sdump.h"
+#include "buf.h"
 
 /* Defines to allow BeOS and Cygwin to play nice... */
 #ifdef __BEOS__
@@ -79,6 +80,11 @@ static ssize_t cygwin_read(int sock, void *buf, size_t count);
 extern int h_errno;
 # endif
 #endif /* ndef h_errno */
+
+/* Magical descriptor handle for the in-memory buffer "socket" */
+#define BUFSOCK_FD (-2)
+
+static struct buf bufsock_buf = BUF_INITIALIZER;
 
 #ifdef HAVE_SOCKETPAIR
 static char *const *parse_plugin(const char *plugin, const char *host, const char *service)
@@ -244,6 +250,10 @@ int UnixOpen(const char *path)
     return sock;
 }
 
+struct buf *BufSock() {
+    return &bufsock_buf;
+}
+
 int SockOpen(const char *host, const char *service,
 	     const char *plugin, struct addrinfo **ai0)
 {
@@ -251,6 +261,12 @@ int SockOpen(const char *host, const char *service,
     int i, acterr = 0;
     int ord;
     char errbuf[8192] = "";
+
+    /* HTTP plugins will fill the buffer socket */
+    if (service && strlen(service) >= 4 && !strncmp(service, "http", 4)) {
+	buf_reset(&bufsock_buf);
+	return BUFSOCK_FD;
+    }
 
 #ifdef HAVE_SOCKETPAIR
     if (plugin)
@@ -502,16 +518,24 @@ int SockRead(int sock, char *buf, int len)
 #endif /* SSL_ENABLE */
 	{
 
+	    if (sock == BUFSOCK_FD)
+		n = buf_peek(&bufsock_buf, bp, len);
+	    else
 #ifdef __BEOS__
-	    if ((n = fm_read(sock, bp, 1)) <= 0)
+		n = fm_read(sock, bp, 1);
 #else
-	    if ((n = fm_peek(sock, bp, len)) <= 0)
+		n = fm_peek(sock, bp, len);
 #endif
+	    if (n <= 0)
 		return (-1);
 	    if ((newline = (char *)memchr(bp, '\n', n)) != NULL)
 		n = newline - bp + 1;
 #ifndef __BEOS__
-	    if ((n = fm_read(sock, bp, n)) == -1)
+	    if (sock == BUFSOCK_FD)
+		n = buf_recv(&bufsock_buf, bp, n);
+	    else
+		n = fm_read(sock, bp, n);
+	    if (n == -1)
 		return(-1);
 #endif /* __BEOS__ */
 	}
@@ -564,7 +588,12 @@ int SockPeek(int sock)
 	}
 	else
 #endif /* SSL_ENABLE */
-	    n = fm_peek(sock, &ch, 1);
+	{
+	    if (sock == BUFSOCK_FD)
+		n = buf_peek(&bufsock_buf, &ch, 1);
+	    else
+		n = fm_peek(sock, &ch, 1);
+	}
 	if (n == -1)
 		return -1;
 

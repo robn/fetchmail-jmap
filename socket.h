@@ -73,4 +73,6 @@ int SSLOpen(int sock, char *mycert, char *mykey, const char *myproto, int certck
     char *fingerprint, char *servercname, char *label, char **remotename);
 #endif /* SSL_ENABLE */
 
+struct buf *BufSock();
+
 #endif /* SOCKET__ */
