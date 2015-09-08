@@ -540,9 +540,18 @@ size_t buf_gets(struct buf *buf, char *out, size_t len)
     return c;
 }
 
-char *buf_peek(struct buf *buf)
+size_t buf_recv(struct buf *buf, char *out, size_t len)
 {
-    if (buf->len == 0)
-        return NULL;
-    return buf->s;
+    size_t n = buf_peek(buf, out, len);
+    buf_remove(buf, 0, n);
+    return n;
+}
+
+size_t buf_peek(struct buf *buf, char *out, size_t len)
+{
+    if (buf->len == 0 || len <= 0)
+        return 0;
+    size_t n = MIN(len, buf->len);
+    memcpy(out, buf->s, n);
+    return n;
 }

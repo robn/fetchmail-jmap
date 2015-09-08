@@ -95,6 +95,7 @@ void buf_init_ro_cstr(struct buf *buf, const char *str);
 void buf_free(struct buf *buf);
 void buf_move(struct buf *dst, struct buf *src);
 size_t buf_gets(struct buf *buf, char *s, size_t len);
-char *buf_peek(struct buf *buf);
+size_t buf_recv(struct buf *buf, char *out, size_t len);
+size_t buf_peek(struct buf *buf, char *out, size_t len);
 
 #endif
