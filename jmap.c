@@ -179,7 +179,9 @@ static int _blob_get(char *blob_id)
     }
 
     // XXX construct URL from downloadUrl(blob_id)
-    curl_easy_setopt(curl_blob, CURLOPT_URL, blob_id);
+    static char blob_url[256];
+    snprintf(blob_url, sizeof(blob_url), "https://proxy.jmap.io/raw/9e2e4652-3191-11e5-847c-0026b9fac7aa/%s/xxx", blob_id);
+    curl_easy_setopt(curl_blob, CURLOPT_URL, blob_url);
 
     buf_reset(&body_in);
     buf_reset(&body_out);
@@ -220,7 +222,10 @@ static int jmap_fetch(int sock, struct query *ctl, int number, int *lenp)
     r = _blob_get(blob_id);
     if (r) goto done;
 
-    *lenp = -1;
+    struct buf *bufsock = BufSock();
+    buf_copy(bufsock, &body_in);
+    buf_appendmap(bufsock, ".\r\n", 3);
+    *lenp = buf_len(bufsock);
 
 done:
     return r;
@@ -238,7 +243,7 @@ static const struct method jmap =
     "http",				/* standard POP2 port */
     "https",				/* ssl POP2 port - not */
     FALSE,				/* this is not a tagged protocol */
-    FALSE,				/* does not use message delimiter */
+    TRUE,				/* does not use message delimiter */
     jmap_ok,				/* parse command response */
     NULL,			/* get authorization */
     jmap_getrange,			/* query range of messages */
